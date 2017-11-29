@@ -79,29 +79,49 @@ var ReactGridLayout = function (_React$Component) {
   // }
 
   ReactGridLayout.prototype.processHeight = function processHeight(divElement) {
+    var _this2 = this;
+
     var prevY = 0,
         maxHeight = 0,
         topToSet = 0,
         props = this.props,
         margin = props.margin,
         containerPadding = props.containerPadding || props.margin,
+        prevTop = containerPadding[1],
         cols = props.cols,
         colWidth = (props.width - margin[0] * (cols - 1) - containerPadding[0] * 2) / cols,
         divChildren = divElement.children;
 
     this.topPositions = {};
 
+    var gridItems = [];
+    if (!this.props.children.length) return;
+    for (var _i = 0; _i < this.props.children.length; _i += 1) {
+      gridItems[_i] = this.props.children[_i];
+    }
+
+    gridItems.sort(function (a, b) {
+      if (!a.key || !b.key) return 0;
+      var al = (0, _utils.getLayoutItem)(_this2.state.layout, String(a.key));
+      if (!a.key || !b.key) return 0;
+      var bl = (0, _utils.getLayoutItem)(_this2.state.layout, String(b.key));
+      if (!al || !bl) return 0;
+      if (typeof al.y === 'undefined' || typeof bl.y === 'undefined') return 0;
+      if (al.y === bl.y) return 0;
+      return al.y > bl.y ? 1 : -1;
+    });
+
     for (var i = 0; i < divChildren.length; i++) {
       var child = this.props.children[i];
-      var divChild = divChildren[i];
       if (!child.key) return;
-
+      var divChild = divChildren[parseInt(child.key)];
+      if (!child.key) return;
       var l = (0, _utils.getLayoutItem)(this.state.layout, String(child.key));
       if (!l) return;
 
       if (l.y != prevY) {
         prevY = l.y;
-        topToSet += maxHeight;
+        topToSet = prevTop + maxHeight;
         maxHeight = 0;
       }
 
@@ -111,7 +131,10 @@ var ReactGridLayout = function (_React$Component) {
       }
 
       var left = Math.round((colWidth + margin[0]) * l.x + containerPadding[0]),
-          top = Math.round(topToSet + margin[1] * l.y + containerPadding[1]);
+          top = Math.round(topToSet + margin[1]);
+
+      prevTop = top;
+
       if (!child.key) return;
       this.topPositions[String(child.key)] = top;
 
@@ -469,7 +492,7 @@ var ReactGridLayout = function (_React$Component) {
   };
 
   ReactGridLayout.prototype.render = function render() {
-    var _this2 = this;
+    var _this3 = this;
 
     var _props5 = this.props,
         className = _props5.className,
@@ -483,12 +506,12 @@ var ReactGridLayout = function (_React$Component) {
     return _react2.default.createElement(
       'div',
       { ref: function ref(divElement) {
-          return _this2.divElement = divElement;
+          return _this3.divElement = divElement;
         }, className: (0, _classnames2.default)('react-grid-layout', className), style: mergedStyle },
 
       // $FlowIgnore: Appears to think map calls back w/array
       _react2.default.Children.map(this.props.children, function (child) {
-        return _this2.processGridItem(child);
+        return _this3.processGridItem(child);
       }),
       this.placeholder()
     );

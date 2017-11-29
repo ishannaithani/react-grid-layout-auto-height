@@ -41,7 +41,7 @@ export type Props = {
   isResizable: boolean,
   preventCollision: boolean,
   useCSSTransforms: boolean,
-  autoHeight:boolean,
+  autoHeight: boolean,
 
   // Callbacks
   onLayoutChange: (Layout) => void,
@@ -64,7 +64,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
   static displayName = "ReactGridLayout";
 
 
-  topPositions = {};  
+  topPositions = {};
   divElement = null;
 
   static propTypes = {
@@ -164,7 +164,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
     //
 
     // Children must not have duplicate keys.
-    children: function (props:Props, propName:string, _componentName:string) {
+    children: function (props: Props, propName: string, _componentName: string) {
       var children = props[propName];
 
       // Check children keys for duplicates. Throw if found.
@@ -223,7 +223,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
     // Possibly call back with layout on mount. This should be done after correcting the layout width
     // to ensure we don't rerender with the wrong width.
     this.onLayoutMaybeChanged(this.state.layout, this.props.layout);
-    this.divElement && this.processHeight(this.divElement) 
+    this.divElement && this.processHeight(this.divElement)
   }
 
   // doProcessHeight() {
@@ -244,23 +244,41 @@ export default class ReactGridLayout extends React.Component<Props, State> {
       props = this.props,
       margin = props.margin,
       containerPadding = props.containerPadding || props.margin,
+      prevTop = containerPadding[1],
       cols = props.cols,
       colWidth = (props.width - margin[0] * (cols - 1) - containerPadding[0] * 2) / cols,
       divChildren = divElement.children;
 
     this.topPositions = {};
 
+    var gridItems = [];
+    if(!this.props.children.length) return;
+    for (let i =0;  i < this.props.children.length; i += 1) {
+      gridItems[i] = this.props.children[i];
+    }
+
+    gridItems.sort((a, b) => {
+      if(!a.key || !b.key) return 0;
+      var al = getLayoutItem(this.state.layout, String(a.key));
+      if(!a.key || !b.key) return 0;
+      var bl = getLayoutItem(this.state.layout, String(b.key));
+      if(!al || !bl) return 0;
+      if (typeof al.y === 'undefined' || typeof bl.y === 'undefined') return 0; 
+      if (al.y === bl.y) return 0;
+      return al.y > bl.y ? 1 : -1;
+    });
+
     for (var i = 0; i < divChildren.length; i++) {
       var child = this.props.children[i];
-      var divChild = divChildren[i];
       if (!child.key) return;
-      
+      var divChild = divChildren[parseInt(child.key)];
+      if (!child.key) return;
       var l = getLayoutItem(this.state.layout, String(child.key));
       if (!l) return;
-      
+
       if (l.y != prevY) {
         prevY = l.y;
-        topToSet += maxHeight;
+        topToSet = prevTop + maxHeight;
         maxHeight = 0;
       }
 
@@ -269,8 +287,11 @@ export default class ReactGridLayout extends React.Component<Props, State> {
       }
 
       var left = Math.round((colWidth + margin[0]) * l.x + containerPadding[0]),
-      top = Math.round((topToSet + margin[1] * l.y) + containerPadding[1]);
-      if (!child.key) return;
+        top = Math.round(topToSet + margin[1]);
+      
+      prevTop = top;
+      
+        if (!child.key) return;
       this.topPositions[String(child.key)] = top;
 
       //In case render is not called again, need to set to DOM directly
@@ -576,7 +597,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
     };
 
     return (
-      <div ref={ (divElement) => this.divElement = divElement } className={classNames('react-grid-layout', className)} style={mergedStyle}>
+      <div ref={(divElement) => this.divElement = divElement} className={classNames('react-grid-layout', className)} style={mergedStyle}>
         {
           // $FlowIgnore: Appears to think map calls back w/array
           React.Children.map(this.props.children, (child) => this.processGridItem(child))
