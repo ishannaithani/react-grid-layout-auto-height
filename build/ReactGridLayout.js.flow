@@ -269,7 +269,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
     });
 
     for (var i = 0; i < divChildren.length; i++) {
-      var child = this.props.children[i];
+      var child = gridItems[i];
       if (!child.key) return;
       var divChild = divChildren[parseInt(child.key)];
       if (!child.key) return;
