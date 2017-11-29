@@ -73,6 +73,8 @@ export default class GridItem extends React.Component<Props, State> {
     margin: PropTypes.array.isRequired,
     maxRows: PropTypes.number.isRequired,
     containerPadding: PropTypes.array.isRequired,
+    autoHeight: PropTypes.bool,
+    topPosition: PropTypes.number,
 
     // These are all in grid units
     x: PropTypes.number.isRequired,
@@ -164,12 +166,12 @@ export default class GridItem extends React.Component<Props, State> {
    * @return {Object}                Object containing coords.
    */
   calcPosition(x: number, y: number, w: number, h: number, state: ?Object): Position {
-    const {margin, containerPadding, rowHeight} = this.props;
+    const {margin, containerPadding, rowHeight, topPosition} = this.props;
     const colWidth = this.calcColWidth();
 
     const out = {
       left: Math.round((colWidth + margin[0]) * x + containerPadding[0]),
-      top: Math.round((rowHeight + margin[1]) * y + containerPadding[1]),
+      top: topPosition ? topPosition : Math.round((rowHeight + margin[1]) * y + containerPadding[1]),
       // 0 * Infinity === NaN, which causes problems with resize constraints;
       // Fix this if it occurs.
       // Note we do it here rather than later because Math.round(Infinity) causes deopt
@@ -250,12 +252,15 @@ export default class GridItem extends React.Component<Props, State> {
    * @return {Object}     Style object.
    */
   createStyle(pos: Position): {[key: string]: ?string} {
-    const {usePercentages, containerWidth, useCSSTransforms} = this.props;
+    const {usePercentages, containerWidth, useCSSTransforms, autoHeight} = this.props;
 
     let style;
     // CSS Transforms support (default)
     if (useCSSTransforms) {
       style = setTransform(pos);
+      if (autoHeight) {
+        style.height = 'auto';
+      }
     }
     // top,left (slow)
     else {
