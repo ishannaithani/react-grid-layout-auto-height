@@ -287,7 +287,7 @@ export default class ReactGridLayout extends React.Component<Props, State> {
       }
 
       var left = Math.round((colWidth + margin[0]) * l.x + containerPadding[0]),
-        top = Math.round(topToSet + margin[1]);
+      top = Math.round(topToSet + margin[1] * l.y + containerPadding[1]);
       
       prevTop = top;
       
@@ -295,8 +295,9 @@ export default class ReactGridLayout extends React.Component<Props, State> {
       this.topPositions[String(child.key)] = top;
 
       //In case render is not called again, need to set to DOM directly
+      divChild.style.left = left + 'px';
       divChild.style.top = top + 'px';
-      divChild.style.transform = 'translate(' + left + 'px,' + top + 'px)';
+      divChild.style.transform = "";
       //divChild.style.msTransform = 'translate(' + left + 'px,' + top + 'px)';
       //divChild.style.WebkitTransform = 'translate(' + left + 'px,' + top + 'px)';
     }
@@ -591,10 +592,17 @@ export default class ReactGridLayout extends React.Component<Props, State> {
   render() {
     const { className, style } = this.props;
 
+    var tmpThis = this;
+
     const mergedStyle = {
       height: this.containerHeight(),
       ...style
     };
+
+    setTimeout(() => {
+      if(tmpThis.divElement)
+        tmpThis.processHeight(tmpThis.divElement);
+    }, 10);
 
     return (
       <div ref={(divElement) => this.divElement = divElement} className={classNames('react-grid-layout', className)} style={mergedStyle}>

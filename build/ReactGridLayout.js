@@ -131,7 +131,7 @@ var ReactGridLayout = function (_React$Component) {
       }
 
       var left = Math.round((colWidth + margin[0]) * l.x + containerPadding[0]),
-          top = Math.round(topToSet + margin[1]);
+          top = Math.round(topToSet + margin[1] * l.y + containerPadding[1]);
 
       prevTop = top;
 
@@ -139,8 +139,9 @@ var ReactGridLayout = function (_React$Component) {
       this.topPositions[String(child.key)] = top;
 
       //In case render is not called again, need to set to DOM directly
+      divChild.style.left = left + 'px';
       divChild.style.top = top + 'px';
-      divChild.style.transform = 'translate(' + left + 'px,' + top + 'px)';
+      divChild.style.transform = "";
       //divChild.style.msTransform = 'translate(' + left + 'px,' + top + 'px)';
       //divChild.style.WebkitTransform = 'translate(' + left + 'px,' + top + 'px)';
     }
@@ -499,9 +500,15 @@ var ReactGridLayout = function (_React$Component) {
         style = _props5.style;
 
 
+    var tmpThis = this;
+
     var mergedStyle = _extends({
       height: this.containerHeight()
     }, style);
+
+    setTimeout(function () {
+      if (tmpThis.divElement) tmpThis.processHeight(tmpThis.divElement);
+    }, 10);
 
     return _react2.default.createElement(
       'div',
